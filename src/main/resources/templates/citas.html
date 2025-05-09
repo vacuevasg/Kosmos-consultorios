@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Consultorio - Citas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container mt-5">
+
+    <h2 class="mb-4">Alta de Cita</h2>
+
+    <!-- Formulario de creación o edición -->
+    <form th:action="@{/cita}" method="post" th:object="${cita}" class="row g-3">
+        <input type="hidden" th:field="*{id}"/>
+
+        <div class="col-md-6">
+            <label class="form-label">Paciente:</label>
+            <input type="text" th:field="*{paciente}" class="form-control" required/>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">Fecha:</label>
+            <input type="date"
+                   th:field="*{fecha}"
+                   th:attr="min=${#temporals.format(fechaMinima, 'yyyy-MM-dd')}"
+                   class="form-control" required/>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">Hora:</label>
+            <select th:field="*{hora}" class="form-select" required>
+                <option th:each="h : ${#numbers.sequence(8, 18)}"
+                        th:value="${T(java.time.LocalTime).of(h,0)}"
+                        th:text="${h + ':00'}">08:00</option>
+            </select>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Consultorio:</label>
+            <select th:field="*{consultorioId}" class="form-select" required>
+                <option value="">-- Seleccione --</option>
+                <option th:each="c : ${consultorios}" th:value="${c.id}" th:text="${c.nombre + ' '+ c.piso}">Consultorio</option>
+            </select>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Médico:</label>
+            <select th:field="*{medicoId}" class="form-select" required>
+                <option value="">-- Seleccione --</option>
+                <option th:each="m : ${medicos}" th:value="${m.id}"
+                        th:text="${m.nombre + ' ' + m.apellidoPaterno + ' ' + m.apellidoMaterno+ ' ('+m.especialidad+')'}">Médico</option>
+            </select>
+        </div>
+
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Guardar Cita</button>
+        </div>
+
+        <div class="col-12">
+            <p th:if="${error}" th:text="${error}" class="text-danger"></p>
+        </div>
+    </form>
+
+    <hr class="my-5"/>
+
+    <!-- Filtros -->
+    <h4 class="mb-3">Filtrar Citas</h4>
+    <form th:action="@{/}" method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label class="form-label">Fecha:</label>
+            <input type="date" name="fecha" class="form-control" th:value="${param.fecha}"/>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Consultorio:</label>
+            <select name="consultorioId" class="form-select">
+                <option value="">-- Todos --</option>
+                <option th:each="c : ${consultorios}" th:value="${c.id}" th:text="${c.nombre}">Consultorio</option>
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Médico:</label>
+            <select name="medicoId" class="form-select">
+                <option value="">-- Todos --</option>
+                <option th:each="m : ${medicos}" th:value="${m.id}"
+                        th:text="${m.nombre + ' ' + m.apellidoPaterno + ' ' + m.apellidoMaterno}">Médico</option>
+            </select>
+        </div>
+
+        <div class="col-md-1 d-flex align-items-end">
+            <button type="submit" class="btn btn-secondary">Filtrar</button>
+        </div>
+    </form>
+
+    <!-- Tabla de citas -->
+    <h3>Lista de Citas</h3>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped mt-3">
+            <thead class="table-light">
+            <tr>
+                <th>Paciente</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Médico</th>
+                <th>Consultorio</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${citas}">
+                <td th:text="${c.paciente}"></td>
+                <td th:text="${c.fecha}"></td>
+                <td th:text="${c.hora}"></td>
+                <td th:text="${c.medico.nombre + ' ' + c.medico.apellidoPaterno + ' ' + c.medico.apellidoMaterno}"></td>
+                <td th:text="${c.consultorio.nombre}"></td>
+                <td>
+                    <a th:href="@{'/cita/editar/' + ${c.id}}" class="btn btn-sm btn-outline-primary">Editar</a>
+                    <a th:href="@{'/cita/eliminar/' + ${c.id}}" class="btn btn-sm btn-outline-danger"
+                       onclick="return confirm('¿Estás seguro de eliminar esta cita?');">Eliminar</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
